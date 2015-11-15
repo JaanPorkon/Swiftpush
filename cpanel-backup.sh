@@ -1,6 +1,6 @@
 #!/bin/bash
 
-container="PBN-Backups"
+container="Backups"
 date=`date +%Y-%m-%d`
 
 for user in /var/cpanel/users/*
