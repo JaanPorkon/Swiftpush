@@ -1,1 +1,1 @@
-swiftpush -f <file> -p <path> -c <container>
+swiftpush -f /home/user/Pictures/openstack.png -p openstack.png -c Images
