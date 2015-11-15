@@ -21,7 +21,7 @@ class SwiftPush:
         mimetypes.init()
 
         if len(sys.argv) == 1:
-            print "swiftpush -i <inputfile> -o <outputfile>"
+            print "swiftpush -f <file> -p <path> -c <container>"
             sys.exit(2)
 
         try:
