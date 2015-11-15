@@ -13,5 +13,5 @@ chmod o+x install.sh
 ```
 #Dependencies
 
-Python 2.7
-Requests (http://docs.python-requests.org/en/latest/)
+* Python 2.7
+* Requests (http://docs.python-requests.org/en/latest/)
