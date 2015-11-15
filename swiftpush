@@ -1,0 +1,107 @@
+#!/usr/bin/env python
+
+import ConfigParser
+import requests
+import getopt
+import sys
+import json
+import mimetypes
+import os
+import types
+
+class SwiftPush:
+
+    def __init__(self):
+        """
+        Load configuration file and other required arguments
+        """
+        self.config = ConfigParser.ConfigParser()
+        self.config.readfp(open('swiftpush.conf'))
+
+        mimetypes.init()
+
+        if len(sys.argv) == 1:
+            print "swiftpush -i <inputfile> -o <outputfile>"
+            sys.exit(2)
+
+        try:
+            opts, args = getopt.getopt(sys.argv[1:], "hf:p:c:", ["file=", "path=", "container="])
+        except getopt.GetoptError:
+            print "swiftpush -f <file> -p <path> -c <container>"
+            sys.exit(2)
+
+        for opt, arg in opts:
+            if opt == "-h":
+                print "swiftpush -f <file> -p <path> -c <container>"
+            elif opt in ("-f", "-file"):
+                self.file = arg
+            elif opt in ("-p", "-path"):
+                self.path = arg
+            elif opt in ("-c", "-container"):
+                self.container = arg
+
+        if not os.path.isfile(self.file):
+            print "File: " + self.file + " does not exist!"
+            sys.exit(1)
+
+        if not os.access(self.file, os.R_OK):
+            print "Unable to access file: " + self.file
+            sys.exit(1)
+
+    def getToken(self):
+
+        request = {
+            "auth": {
+                "identity": {
+                    "methods": ["password"],
+                    "password": {
+                        "user": {
+                            "name": self.config.get("keystone", "username"),
+                            "password": self.config.get("keystone", "password"),
+                            "domain": {
+                                "id": self.config.get("keystone", "project")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        r = requests.post(self.config.get("keystone", "api_url") + "/auth/tokens", headers={
+            "Content-Type": "application/json"
+        }, data=json.dumps(request))
+
+        responseJson = json.loads(r.text)
+
+        for catalog in responseJson["token"]["catalog"]:
+            if catalog["name"] == "swift":
+                for endpoint in catalog["endpoints"]:
+                    if endpoint["interface"] == "public":
+                        return { "url": endpoint["url"], "token": r.headers["X-Subject-Token"] }
+
+    def uploadFile(self, token):
+
+        name, ext = os.path.splitext(self.file)
+
+        if ext == "":
+            ext = ".txt"
+
+        contentType = mimetypes.types_map[ext]
+        contentLenght = os.path.getsize(self.file)
+
+        with open(self.file, "r") as f:
+            content = f.read()
+
+        r = requests.put(token["url"] + "/" + self.container + "/" + self.path, headers={
+            "Content-Type": contentType,
+            "Content-Length": contentLenght,
+            "X-Auth-Token": token["token"]
+        }, data=content)
+
+        print r.text
+
+    def upload(self):
+        self.uploadFile(self.getToken())
+
+swiftpush = SwiftPush()
+swiftpush.upload()

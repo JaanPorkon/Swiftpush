@@ -1,0 +1,6 @@
+Inside a folder
+chmod a+x swiftpush
+ln -s /path/to/swiftpush /usr/local/bin
+
+git add
+git commit
