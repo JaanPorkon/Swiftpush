@@ -83,6 +83,27 @@ class SwiftPush:
                     if endpoint["interface"] == "public":
                         self.token = { "url": endpoint["url"], "token": r.headers["X-Subject-Token"] }
 
+    def progressBar(self, monitor):
+
+        percent = round(100 * float(monitor.bytes_read) / float(self.contentLenght));
+
+        progressBarStart = "["
+        progressBarEnd = "]"
+        progressBarContents = ""
+
+        count = 0
+
+        for count in range(0, int(round(percent / 5))):
+            progressBarContents += "="
+            count += 1
+
+        for count in range(0, (20 - count)):
+            progressBarContents += " "
+
+        progressBarFinal = progressBarStart + progressBarContents + progressBarEnd + " " + str(percent) + "%"
+
+        sys.stdout.write("\r" + progressBarFinal)
+
     def uploadFile(self):
 
         name, ext = os.path.splitext(self.file)
@@ -91,15 +112,26 @@ class SwiftPush:
             ext = ".txt"
 
         contentType = mimetypes.types_map[ext]
-        contentLenght = os.path.getsize(self.file)
+        self.contentLenght = os.path.getsize(self.file)
 
         files = {'upload_file': open(self.file,'rb')}
 
+        from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
+
+        e = MultipartEncoder(fields={'upload_file': ('upload_file', open(self.file, 'rb'), contentType)})
+        m = MultipartEncoderMonitor(e, self.progressBar)
+
         r = requests.put(self.token["url"] + "/" + self.container + "/" + self.path, headers={
+            "Content-Type": contentType,
+            "Content-Length": self.contentLenght,
+            "X-Auth-Token": self.token["token"]
+        }, data=m)
+
+        '''r = requests.put(self.token["url"] + "/" + self.container + "/" + self.path, headers={
             "Content-Type": contentType,
             "Content-Length": contentLenght,
             "X-Auth-Token": self.token["token"]
-        }, files=files)
+        }, files=files)'''
 
         print r.text
 

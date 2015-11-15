@@ -5,6 +5,13 @@ files to their containers from CLI.
 
 #Installation
 
+Install dependencies:
+```
+pip install requests_toolbelt
+pip install requests
+```
+
+Install Swiftpush:
 ```
 git clone https://github.com/JaanPorkon/Swiftpush.git
 cd Swiftpush
@@ -30,3 +37,4 @@ swiftpush -f /home/user/Pictures/openstack.png -p openstack.png -c Images
 
 * Python 2.7
 * Requests (http://docs.python-requests.org/en/latest/)
+* Requests toolbelt (https://github.com/sigmavirus24/requests-toolbelt)
