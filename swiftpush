@@ -92,11 +92,13 @@ class SwiftPush:
         with open(self.file, "r") as f:
             content = f.read()
 
+        files = {'upload_file': open(self.file,'rb')}
+
         r = requests.put(token["url"] + "/" + self.container + "/" + self.path, headers={
             "Content-Type": contentType,
             "Content-Length": contentLenght,
             "X-Auth-Token": token["token"]
-        }, data=content)
+        }, files=files)
 
         print r.text
 
