@@ -15,8 +15,12 @@ class SwiftPush:
         """
         Load configuration file and other required arguments
         """
+
+        path = os.path.realpath("/usr/local/bin/swiftpush").split('/')
+        path.pop()
+
         self.config = ConfigParser.ConfigParser()
-        self.config.readfp(open('swiftpush.conf'))
+        self.config.readfp(open("/".join(path) + "/" + "swiftpush.conf"))
 
         mimetypes.init()
 
@@ -77,9 +81,9 @@ class SwiftPush:
             if catalog["name"] == "swift":
                 for endpoint in catalog["endpoints"]:
                     if endpoint["interface"] == "public":
-                        return { "url": endpoint["url"], "token": r.headers["X-Subject-Token"] }
+                        self.token = { "url": endpoint["url"], "token": r.headers["X-Subject-Token"] }
 
-    def uploadFile(self, token):
+    def uploadFile(self):
 
         name, ext = os.path.splitext(self.file)
 
@@ -89,21 +93,19 @@ class SwiftPush:
         contentType = mimetypes.types_map[ext]
         contentLenght = os.path.getsize(self.file)
 
-        with open(self.file, "r") as f:
-            content = f.read()
-
         files = {'upload_file': open(self.file,'rb')}
 
-        r = requests.put(token["url"] + "/" + self.container + "/" + self.path, headers={
+        r = requests.put(self.token["url"] + "/" + self.container + "/" + self.path, headers={
             "Content-Type": contentType,
             "Content-Length": contentLenght,
-            "X-Auth-Token": token["token"]
+            "X-Auth-Token": self.token["token"]
         }, files=files)
 
         print r.text
 
     def upload(self):
-        self.uploadFile(self.getToken())
+        self.getToken()
+        self.uploadFile()
 
 swiftpush = SwiftPush()
 swiftpush.upload()
