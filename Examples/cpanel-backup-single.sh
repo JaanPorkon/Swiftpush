@@ -1,4 +1,4 @@
-c#!/bin/bash
+#!/bin/bash
 
 # This script allows you to create backups automatically and upload them to your
 # Swift deployment. This scrit will allow you to backup accounts one by one
